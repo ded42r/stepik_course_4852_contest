@@ -112,12 +112,14 @@ def split_events_submissions(events, submissions, test_size=0.3):
      """
 
     # сделаем случайную выборку пользователей курса для теста
-    users_ids = np.concatenate((events.user_id.unique(), submissions.user_id.unique()))
+    users_ids = np.unique(np.concatenate((events.user_id.unique(), submissions.user_id.unique())))
     np.random.shuffle(users_ids)
     test_sz = int(len(users_ids) * test_size)
     train_sz = len(users_ids) - test_sz
     train_users = users_ids[:train_sz]
     test_users = users_ids[-test_sz:]
+    # Проверка что пользователи не пересекаются
+    assert len(np.intersect1d(train_users, test_users)) == 0
 
     # теперь делим данные
     event_train = events[events.user_id.isin(train_users)]
