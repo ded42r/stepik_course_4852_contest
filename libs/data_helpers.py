@@ -14,71 +14,95 @@ def preprocess_timestamp_cols(data):
     return data
 
 
-def create_user_data(events_data, submissions_data):
+def create_interaction(events, submissions):
+    """ объединить все данные по взаимодействию
+
+    Parameters
+    ----------
+    events : pd.DataFrame
+        данные с действиями пользователя
+    submissions : pd.DataFrame
+        данные самбитов практики
+    """
+    interact_train = pd.concat([events, submissions.rename(columns={'submission_status': 'action'})])
+    interact_train.action = pd.Categorical(interact_train.action,
+                                           ['discovered', 'viewed', 'started_attempt',
+                                            'wrong', 'passed', 'correct'], ordered=True)
+    interact_train = interact_train.sort_values(['user_id', 'timestamp', 'action'])
+    return interact_train
+
+
+def create_user_data(events, submissions):
     """ создать таблицу с данными по каждому пользователю
 
     Parameters
     ----------
-    events_data : pd.DataFrame
+    events : pd.DataFrame
         данные с действиями пользователя
-    submissions_data : pd.DataFrame
+    submissions : pd.DataFrame
         данные самбитов практики
     """
-    users_data = events_data.groupby('user_id', as_index=False) \
+    users_data = events.groupby('user_id', as_index=False) \
         .agg({'timestamp': 'max'}).rename(columns={'timestamp': 'last_timestamp'})
 
     # попытки сдачи практики пользователя
-    users_scores = submissions_data.pivot_table(index='user_id',
-                                                columns='submission_status',
-                                                values='step_id',
-                                                aggfunc='count',
-                                                fill_value=0).reset_index()
+    users_scores = submissions.pivot_table(index='user_id',
+                                           columns='submission_status',
+                                           values='step_id',
+                                           aggfunc='count',
+                                           fill_value=0).reset_index()
     users_data = users_data.merge(users_scores, on='user_id', how='outer')
     users_data = users_data.fillna(0)
 
     # колво разных событий пользователя по урокам
-    users_events_data = events_data.pivot_table(index='user_id',
-                                                columns='action',
-                                                values='step_id',
-                                                aggfunc='count',
-                                                fill_value=0).reset_index()
+    users_events_data = events.pivot_table(index='user_id',
+                                           columns='action',
+                                           values='step_id',
+                                           aggfunc='count',
+                                           fill_value=0).reset_index()
     users_data = users_data.merge(users_events_data, how='outer')
 
     # колво дней на курсе
-    users_days = events_data.groupby('user_id').day.nunique().to_frame().reset_index()
+    users_days = events.groupby('user_id').day.nunique().to_frame().reset_index()
     users_data = users_data.merge(users_days, how='outer')
 
     return users_data
 
 
-def get_y(events_data, course_threshold=40):
+def get_y(events, submissions, course_threshold=40, target_action='passed'):
     """ создать метку  (целевая переменная для прогноза is_gone
 
     Parameters
     ----------
-    events_data : pd.DataFrame
+    events : pd.DataFrame
         данные с действиями пользователя
+    submissions : pd.DataFrame
+        данные самбитов практики
     course_threshold : int
         порог в колве заданий, когда курс считается пройденным
+    target_action: string
+        название действия по степу, по колву которых мы рассчитываем целевую переменную 
     """
-    users_data = events_data[['user_id']].drop_duplicates()
+    interactions = create_interaction(events, submissions)
+    users_data = interactions[['user_id']].drop_duplicates()
 
-    passed_steps = (events_data.query("action == 'passed'")
+    assert target_action in interactions.action.unique()
+    passed_steps = (interactions.query("action == @target_action")
                     .groupby('user_id', as_index=False)['step_id'].count()
-                    .rename(columns={'step_id': 'passed'}))
+                    .rename(columns={'step_id': target_action}))
     users_data = users_data.merge(passed_steps, how='outer')
 
     # пройден ли курс
-    users_data['is_gone'] = users_data.passed > course_threshold
-    assert users_data.user_id.nunique() == events_data.user_id.nunique()
-    users_data = (users_data.drop('passed', axis=1)
+    users_data['is_gone'] = users_data[target_action] > course_threshold
+    assert users_data.user_id.nunique() == events.user_id.nunique()
+    users_data = (users_data.drop(target_action, axis=1)
                   .set_index('user_id'))
     return users_data['is_gone']
 
 
 def truncate_data_by_nday(data, n_day):
     """ Взять события из n_day первых дней по каждому пользователю 
-    
+
         Parameters
         ----------
         data: pandas.DataFrame
@@ -100,7 +124,7 @@ def truncate_data_by_nday(data, n_day):
 
 def split_events_submissions(events, submissions, test_size=0.3):
     """ разделение выборки на трейн и тест по пользователям
-     
+
         Parameters
         ----------
         events: pandas.DataFrame

@@ -24,7 +24,7 @@ def get_x_y(events, submissions):
     X = X.set_index('user_id')
     safe_drop_cols_df(X, ['last_timestamp'])
 
-    y = dh.get_y(events)
+    y = dh.get_y(events, submissions)
 
     # после создания признаков и метки порядок следования user_id может не совпадать
     X = X.sort_index()
