@@ -69,7 +69,7 @@ def create_user_data(events, submissions):
     return users_data
 
 
-def get_y(events, submissions, course_threshold=40, target_action='passed'):
+def get_y(events, submissions, course_threshold=40, target_action='correct'):
     """ создать метку  (целевая переменная для прогноза is_gone
 
     Parameters
