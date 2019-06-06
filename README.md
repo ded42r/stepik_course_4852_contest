@@ -13,7 +13,7 @@
 Целевая пеменная принимает значение True, если пользователь имеет более 40 событий _correct_, и False в противном случае.
 В качестве модели используется [RandomForest из sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html).
 
-**Структура проекта**
+**Структура проекта ([шаблон](https://drivendata.github.io/cookiecutter-data-science/))**
 * **notebooks** - каталог с блокнотами решений и создания прзнаков для обученя моделей
     * _model-baseline.ipynb_ - бейслайн который уже был ROC_AUC = 0.8845
     * _model-auto_features.ipynb_ - решение основанное на полностью автоматической генерации фич. ROC_AUC = 0.8926.    
