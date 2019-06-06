@@ -152,3 +152,15 @@ def split_events_submissions(events, submissions, test_size=0.3):
     submissions_test = submissions[submissions.user_id.isin(test_users)]
 
     return event_train, event_test, submissions_train, submissions_test
+
+
+def make_intersect_by_users(events, submissions, data):
+    """ вернуть данные из data только  по тем пользователям, которые есть в events, submissions """
+    user_ids = np.unique(np.concatenate((events.user_id.unique(),
+                                         submissions.user_id.unique())))
+
+    # проверяем что для всех пользователей которых передали есть информация
+    diff_users = np.setdiff1d(user_ids, data.index.values)
+    assert len(diff_users) == 0
+
+    return data.loc[user_ids]

@@ -3,6 +3,8 @@ import datetime
 import numpy as np
 import pandas as pd
 
+import libs.config as conf
+
 
 def create_report(user_ids, preds):
     res = pd.DataFrame(preds[:, np.newaxis], columns=['is_gone'], index=user_ids)
@@ -10,9 +12,9 @@ def create_report(user_ids, preds):
 
 
 def save_report(rep, submit_num=None):
-    submit_str = ''
+    submit_str = ""
     if submit_num:
-        submit_str = '_submit_{}'.format(submit_num)
-    fname = './reports/predict_{:%Y-%m-%d}{}.csv'.format(datetime.datetime.now(), submit_str)
+        submit_str = f"_submit_{submit_num}"
+    fname = f"{conf.REPORTS_DIR}/predict_{datetime.datetime.now():%Y-%m-%d}{submit_str}.csv"
     rep.to_csv(fname, index=False)
     return fname

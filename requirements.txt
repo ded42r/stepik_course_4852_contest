@@ -1,5 +1,8 @@
-numpy==1.11.0
-pandas==0.21.0
-matplotlib==1.5.1
-scikit-learn==0.20.3
-tqdm
+numpy==1.14.5
+pandas==0.23.1
+matplotlib==3.0.0
+scikit-learn==0.21.2
+featuretools==0.8.0
+tsfresh==0.11.2
+boruta==0.3
+tqdm==4.32.1
