@@ -87,6 +87,8 @@ def get_y(events, submissions, course_threshold=40, target_action='correct'):
     users_data = interactions[['user_id']].drop_duplicates()
 
     assert target_action in interactions.action.unique()
+
+    # todo: вместо count по хорошему нужно брать уникальные степы. Потому что correct может встречаться более 1 раза
     passed_steps = (interactions.query("action == @target_action")
                     .groupby('user_id', as_index=False)['step_id'].count()
                     .rename(columns={'step_id': target_action}))

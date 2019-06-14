@@ -19,19 +19,6 @@ def get_x_y(events, submissions):
     interact_features = interact_features.fillna(0)
     X = pd.concat([X, interact_features], axis=1)
 
-    # prog_ft = fsp.gen_progress_features(x_iter1)
-    # X = pd.concat([X, prog_ft], axis=1)
-    #
-    # rat_features = fsp.create_ratio_features_action(x_iter1)
-    # X = pd.concat([X, rat_features], axis=1)
-    #
-    # rat_features2 = fsp.create_ratio_features_action_subm_status(x_iter1)
-    # X = pd.concat([X, rat_features2], axis=1)
-    #
-    # rat_features_day = fsp.create_ratio_features_day(x_iter1)
-    # X = pd.concat([X, rat_features_day], axis=1)
-    # X = X.fillna(0)
-
     # признаки сгенеренные featuretools
     user_step_scores = gen_user_step_scores(events, submissions)
     user_step_scores = dh.make_intersect_by_users(events, submissions, user_step_scores)
