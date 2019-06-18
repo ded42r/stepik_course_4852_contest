@@ -88,9 +88,9 @@ def get_y(events, submissions, course_threshold=40, target_action='correct'):
 
     assert target_action in interactions.action.unique()
 
-    # todo: вместо count по хорошему нужно брать уникальные степы. Потому что correct может встречаться более 1 раза
+    # вместо count по хорошему нужно брать уникальные степы. Потому что correct может встречаться более 1 раза
     passed_steps = (interactions.query("action == @target_action")
-                    .groupby('user_id', as_index=False)['step_id'].count()
+                    .groupby('user_id', as_index=False)['step_id'].agg(lambda a: len(np.unique(a)))
                     .rename(columns={'step_id': target_action}))
     users_data = users_data.merge(passed_steps, how='outer')
 
